@@ -1,6 +1,6 @@
 <template>
   <form>
-    <div class="form-field" v-for="field in model" :key="field.name">
+    <div class="form-field" v-for="field in formFields" :key="field.name">
       <label :for="field.name">{{ field.label }}</label>
       <input
         v-if="field.type !== 'textarea'"
@@ -22,7 +22,7 @@
   </form>
 </template>
 <script lang="ts">
-import { defineComponent, ref, PropType } from "vue";
+import { defineComponent, PropType } from "vue";
 import useValidate, { ValidationArgs } from "@vuelidate/core";
 import { FormField } from "@/interfaces/FormField.interface";
 
@@ -38,8 +38,6 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const model = ref(props.formFields);
-
     const handleChange = (e: Event, name: string) => {
       const input = e.currentTarget as HTMLInputElement;
       const value = input.value;
@@ -51,7 +49,7 @@ export default defineComponent({
       e.preventDefault();
       const valid = await v$.value.$validate();
       if (!valid) {
-        const fields = Object.keys(model.value);
+        const fields = Object.keys(props.formFields);
         fields.forEach((fieldName) => {
           if (v$.value[fieldName].$error) {
             emit("set-error", {
@@ -73,12 +71,11 @@ export default defineComponent({
       }
     };
 
-    const v$ = useValidate(props.schema, model.value);
+    const v$ = useValidate(props.schema, props.formFields);
 
     return {
       handleChange,
       handleSubmit,
-      model,
       v$,
     };
   },
